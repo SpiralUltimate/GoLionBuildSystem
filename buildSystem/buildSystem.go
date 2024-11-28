@@ -73,8 +73,16 @@ func (build *Builder) Parse(cmakeFilePath string) error {
 
 // Runs an already parsed cmake file
 func (build *Builder) Run() error {
+	// Cmake command name
+	const cmakeCommand = "cmake"
+	// Cmake build params/arguments
+	buildCommands := []string{
+		"-S", ".",
+		"-B", "build",
+		"-G", "\"Unix Makefiles\""}
+
 	// Build cmake into MakeFiles inside a "build" directory
-	buildCmd := exec.Command("cmake", "-S", ".", "-B", "build", "-G", "\"Unix Makefiles\"")
+	buildCmd := exec.Command(cmakeCommand, strings.Join(buildCommands, " "))
 	// Set standard input and output to current terminal stdin and stdout
 	buildCmd.Stdin = os.Stdin
 	buildCmd.Stdout = os.Stdout
