@@ -10,15 +10,12 @@ type Builder struct {
 	compiler string
 	// Project files
 	projectFiles []string
-	// Cmake file being edited
-	cmakeFile os.File
 }
 
-// Parses Builder struct into cmake file
-
-func (build *Builder) Parse() error {
+// Parses Builder struct into a cmake file, using the given name for the resulting cmake file
+func (build *Builder) Parse(cmakeFilePath string) error {
 	// Create a new CMake file
-	cmakeFile, err := os.Create("CMakeLists.txt")
+	cmakeFile, err := os.Create(cmakeFilePath)
 	// Error check cmake file
 	if err != nil {
 		return err
