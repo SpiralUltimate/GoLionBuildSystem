@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	LionFormat "github.com/SpiralUltimate/GoLionFormat/format"
 )
@@ -81,7 +82,7 @@ func (build *Builder) Run() error {
 	err := buildCmd.Run()
 	// Check for build command errors
 	if err != nil {
-		return err
+		return fmt.Errorf("error when running cmake build command: %v", strings.Join(buildCmd.Args, ""))
 	}
 
 	// Get the config param string
@@ -99,8 +100,11 @@ func (build *Builder) Run() error {
 	err = buildMakeCmd.Run()
 	// Check for buildMake command errors
 	if err != nil {
-		return fmt.Errorf("Error when running build command: %v\n", err)
+		return fmt.Errorf("error when running make build command: %v", err)
 	}
+
+	// Print success message
+	fmt.Println("Cmake successfully built!")
 
 	// Return nil as error to indicate success
 	return nil
