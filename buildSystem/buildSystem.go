@@ -1,6 +1,7 @@
 package buildSystem
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -98,7 +99,7 @@ func (build *Builder) Run() error {
 	err = buildMakeCmd.Run()
 	// Check for buildMake command errors
 	if err != nil {
-		return err
+		return fmt.Errorf("Error when running build command: %v\n", err)
 	}
 
 	// Return nil as error to indicate success
