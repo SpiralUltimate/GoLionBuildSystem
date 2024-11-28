@@ -1,6 +1,11 @@
 package buildSystem
 
-import "os"
+import (
+	"os"
+	"os/exec"
+
+	LionFormat "github.com/SpiralUltimate/GoLionFormat/format"
+)
 
 // Instantiate a builder class
 type Builder struct {
@@ -8,11 +13,37 @@ type Builder struct {
 	project string
 	// Compiler
 	compiler string
+	// C++ standard
+	cppStandard int
+	// config to run built MakeFiles in (eg. "debug", "release", etc.)
+	config string
+
 	// Project files
 	projectFiles []string
 }
 
-// Parses Builder struct into a cmake file, using the given name for the resulting cmake file
+// Makes a new project, using the given name. Also sets the compiler (eg. "g++", "gcc")
+func (build *Builder) Project(name string, compiler string) {
+	build.project = name
+	build.compiler = compiler
+}
+
+// Sets a C++ standard
+func (build *Builder) CppStandard(cppStandard int) {
+	build.cppStandard = cppStandard
+}
+
+// Sets the config to use (eg. "debug", "release")
+func (build *Builder) Config(config string) {
+	build.config = config
+}
+
+// Adds files to the project
+func (build *Builder) Files(files ...string) {
+	build.projectFiles = append(build.projectFiles, files...)
+}
+
+// Parses Builder struct into a cmake file, using the given path for the resulting cmake file
 func (build *Builder) Parse(cmakeFilePath string) error {
 	// Create a new CMake file
 	cmakeFile, err := os.Create(cmakeFilePath)
@@ -38,13 +69,38 @@ func (build *Builder) Parse(cmakeFilePath string) error {
 	return nil
 }
 
-// Makes a new project, using the given name
-func (build *Builder) Project(name string, compiler string) {
-	build.project = name
-	build.compiler = compiler
-}
+// Runs an already parsed cmake file
+func (build *Builder) Run() error {
+	// Build cmake into MakeFiles inside a "build" directory
+	buildCmd := exec.Command("cmake", "-S", ".", "-B", "build")
+	// Set standard input and output to current terminal stdin and stdout
+	buildCmd.Stdin = os.Stdin
+	buildCmd.Stdout = os.Stdout
+	// Run build command
+	err := buildCmd.Run()
+	// Check for build command errors
+	if err != nil {
+		return err
+	}
 
-// Adds files to the project
-func (build *Builder) AddFiles(files ...string) {
-	build.projectFiles = append(build.projectFiles, files...)
+	// Get the config param string
+	config, err := LionFormat.Format("config={s}", build.config)
+	// Check for errors when formatting
+	if err != nil {
+		return err
+	}
+	// Run built MakeFiles
+	buildMakeCmd := exec.Command("make", config)
+	// Set standard input and output to current terminal stdin and stdout
+	buildMakeCmd.Stdin = os.Stdin
+	buildMakeCmd.Stdout = os.Stdout
+	// Run buildMake command
+	err = buildMakeCmd.Run()
+	// Check for buildMake command errors
+	if err != nil {
+		return err
+	}
+
+	// Return nil as error to indicate success
+	return nil
 }
